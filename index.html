@@ -75,6 +75,52 @@ button:hover {
 
 .results {
     margin-top: 30px;
+    padding: 20px;
+    background: rgba(56,189,248,0.1);
+    border-radius: 10px;
+    border: 1px solid #38bdf8;
+}
+
+.results h3 {
+    margin-top: 0;
+    color: #38bdf8;
+}
+
+.results h2 {
+    color: #38bdf8;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.results ul {
+    padding-left: 20px;
+}
+
+.results li {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.score-display {
+    font-size: 32px;
+    font-weight: bold;
+    color: #38bdf8;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.error {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid #ef4444;
+    color: #fca5a5;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.loading {
+    text-align: center;
+    color: #38bdf8;
 }
 </style>
 </head>
@@ -152,6 +198,9 @@ async function analyzeResume() {
         return;
     }
 
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = '<div class="loading">⏳ Analyzing resume...</div>';
+
     const formData = new FormData();
     formData.append("resume", uploadedFile);
     formData.append("job_role", document.getElementById("jobRole").value);
@@ -163,20 +212,68 @@ async function analyzeResume() {
             body: formData
         });
 
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+
         const data = await response.json();
 
-        document.getElementById("results").innerHTML = `
-            <h3>Score: ${data.score}/100</h3>
-            <p><strong>Skills:</strong> ${data.skills?.join(", ") || "None"}</p>
-            <p><strong>Missing Skills:</strong> ${data.missing_skills?.join(", ") || "None"}</p>
-            <p><strong>Suggestions:</strong></p>
-            <ul>
-                ${(data.grammar || []).map(g => `<li>${g.message || g}</li>`).join("")}
-            </ul>
+        if (data.message && data.message.toLowerCase().includes("error")) {
+            resultsDiv.innerHTML = `<div class="error"><strong>Error:</strong> ${data.message}</div>`;
+            return;
+        }
+
+        // Build results HTML
+        let resultsHTML = `
+            <h2>Analysis Results</h2>
+            <div class="score-display">${data.score || 0}/100</div>
         `;
 
+        if (data.skills && data.skills.length > 0) {
+            resultsHTML += `
+                <h3>✓ Detected Skills (${data.skills.length})</h3>
+                <ul>
+                    ${data.skills.map(s => `<li><strong>${s}</strong></li>`).join("")}
+                </ul>
+            `;
+        } else {
+            resultsHTML += `<h3>✓ Detected Skills</h3><p>No skills detected. Consider adding technical skills to your resume.</p>`;
+        }
+
+        if (data.missing_skills && data.missing_skills.length > 0) {
+            resultsHTML += `
+                <h2>Missing Skills (${data.missing_skills.length})</h2>
+                <ul>
+                    ${data.missing_skills.slice(0, 10).map(s => `<li>${s}</li>`).join("")}
+                </ul>
+            `;
+        }
+
+        if (data.grammar && data.grammar.length > 0) {
+            resultsHTML += `
+                <h2>Grammar & Writing Issues (${data.grammar.length})</h2>
+                <ul>
+                    ${data.grammar.map(g => `<li>${typeof g === 'string' ? g : g.message || JSON.stringify(g)}</li>`).join("")}
+                </ul>
+            `;
+        } else {
+            resultsHTML += `<h2>Grammar & Writing</h2><p>✓ No major issues found!</p>`;
+        }
+
+        if (data.recommendations && data.recommendations.length > 0) {
+            resultsHTML += `
+                <h2>Recommendations</h2>
+                <ul>
+                    ${data.recommendations.map(r => `<li>${r}</li>`).join("")}
+                </ul>
+            `;
+        }
+
+        resultsDiv.innerHTML = resultsHTML;
+
     } catch (error) {
-        alert("Error connecting to server.");
+        resultsDiv.innerHTML = `<div class="error"><strong>Error:</strong> Could not connect to server. Make sure the Flask app is running on port 5000.<br/><small>${error.message}</small></div>`;
+        console.error("Error:", error);
     }
 }
 
