@@ -42,7 +42,7 @@ def analyze():
     # AI processing
     skills, missing = extract_skills(text, job_role)
     grammar = grammar_check(text)
-    score = score_resume(text, skills, grammar, job_role)
+    score = score_resume(text, skills, grammar, job_role, missing)
 
     # Recommendations
     recommendations = [

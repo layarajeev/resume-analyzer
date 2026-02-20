@@ -1,35 +1,49 @@
 import spacy
 
-# Load NLP model
 nlp = spacy.load("en_core_web_sm")
 
-# Main skill database (expand anytime)
-SKILL_DB = [
-    "python", "java", "c", "c++", "sql",
-    "machine learning", "data science",
-    "html", "css", "javascript",
-    "react", "node", "communication",
-    "teamwork", "leadership",
-    "problem solving", "git"
-]
+# Role-based skill mapping
+ROLE_SKILLS = {
+    "engineer": [
+        "python", "java", "c++", "sql",
+        "html", "css", "javascript",
+        "react", "node", "git"
+    ],
+    "manager": [
+        "leadership", "communication",
+        "project management", "teamwork",
+        "strategy", "planning"
+    ],
+    "data": [
+        "python", "machine learning",
+        "data analysis", "statistics",
+        "pandas", "numpy", "sql"
+    ]
+}
 
 
 def extract_skills(text, job_role=None):
-    doc = nlp(text.lower())
 
-    detected_skills = []
+    text_lower = text.lower()
+    detected = []
+    missing = []
 
-    # AI-based skill detection
-    for skill in SKILL_DB:
-        if skill in doc.text:
-            detected_skills.append(skill)
+    # Detect all skills from DB
+    for role in ROLE_SKILLS:
+        for skill in ROLE_SKILLS[role]:
+            if skill in text_lower and skill not in detected:
+                detected.append(skill)
 
-    # Optional: Missing skills for job role
-    missing_skills = []
+    # If job role given → check role-specific expectations
     if job_role:
-        job_doc = nlp(job_role.lower())
-        for skill in SKILL_DB:
-            if skill in job_doc.text and skill not in detected_skills:
-                missing_skills.append(skill)
+        job_role_lower = job_role.lower()
 
-    return detected_skills, missing_skills
+        for role_key in ROLE_SKILLS:
+            if role_key in job_role_lower:
+                expected_skills = ROLE_SKILLS[role_key]
+
+                for skill in expected_skills:
+                    if skill not in detected:
+                        missing.append(skill)
+
+    return detected, missing
