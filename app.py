@@ -1,11 +1,10 @@
 from flask import Flask, request, jsonify, send_from_directory
-import os
 from PyPDF2 import PdfReader
 
 # AI modules
 from skills import extract_skills
 from grammar import grammar_check
-from scoring import score_resume
+from scoring import score_resume, resume_feedback
 
 app = Flask(__name__, static_folder=".", static_url_path="")
 
@@ -13,10 +12,7 @@ app = Flask(__name__, static_folder=".", static_url_path="")
 # Serve frontend
 @app.route("/")
 def home():
-    try:
-        return send_from_directory(".", "index.html")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return send_from_directory(".", "index.html")
 
 
 # Resume analysis route
@@ -35,61 +31,40 @@ def analyze():
 
         text = ""
 
-        # PDF extraction
-        try:
-            if file.filename.endswith(".pdf"):
-                reader = PdfReader(file)
-                for page in reader.pages:
-                    text += page.extract_text() or ""
-            else:
-                # TXT and other text formats
-                text = file.read().decode("utf-8", errors="ignore")
-        except Exception as e:
-            return jsonify({"message": f"Error reading file: {str(e)}"}), 400
+        # ✅ FIXED PDF READING
+        if file.filename.lower().endswith(".pdf"):
+            reader = PdfReader(file)
+            for page in reader.pages:
+                extracted = page.extract_text()
+                if extracted:
+                    text += extracted + "\n"
+        else:
+            text = file.read().decode("utf-8", errors="ignore")
 
-        if not text or len(text.strip()) < 10:
-            return jsonify({"message": "Resume appears to be empty or unreadable"}), 400
+        if len(text.strip()) < 20:
+            return jsonify({"message": "Resume unreadable or empty"}), 400
 
         # AI processing
-        try:
-            skills, missing = extract_skills(text, job_role)
-            grammar = grammar_check(text)
-            score = score_resume(text, skills, grammar, job_role, missing)
-        except Exception as e:
-            return jsonify({"message": f"Error processing resume: {str(e)}"}), 500
+        skills, missing = extract_skills(text, job_role)
+        grammar = grammar_check(text)
+        score = score_resume(text, skills, grammar, job_role)
 
-        # Recommendations based on analysis
-        recommendations = []
-        if len(skills) < 5:
-            recommendations.append("Add more technical skills to your resume.")
-        if len(grammar) > 5:
-            recommendations.append("Review grammar and spelling throughout.")
-        if len(missing) > 0:
-            recommendations.append(f"Consider adding missing skills: {', '.join(missing[:3])}")
-        if len(text.split()) < 400:
-            recommendations.append("Expand your resume with more details and achievements.")
-        
-        if not recommendations:
-            recommendations = [
-                "Add measurable achievements.",
-                "Include relevant technical projects.",
-                "Keep formatting consistent.",
-                "Highlight key skills clearly."
-            ]
+        # Recommendations
+        recommendations = resume_feedback(text, job_role)
 
         return jsonify({
             "score": score,
-            "skills": skills if skills else [],
-            "missing_skills": missing if missing else [],
-            "grammar": grammar if grammar else [],
+            "skills": skills,
+            "missing_skills": missing,
+            "grammar": grammar,
             "recommendations": recommendations,
-            "summary": "AI-powered resume analysis completed."
+            "summary": "AI analysis complete."
         })
-    
+
     except Exception as e:
-        return jsonify({"message": f"Server error: {str(e)}"}), 500
+        print("ERROR:", e)
+        return jsonify({"message": str(e)}), 500
 
 
 if __name__ == "__main__":
-    port = 3000
-    app.run(debug=True, host="0.0.0.0", port=port)
+    app.run(debug=True)

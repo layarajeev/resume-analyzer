@@ -1,283 +1,765 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Resume Analyzer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #080b0f;
+            --surface: #0e1318;
+            --surface2: #131920;
+            --border: #1e2a35;
+            --accent: #00e5ff;
+            --accent2: #7b61ff;
+            --text: #e8edf2;
+            --text-muted: #5a6a7a;
+            --success: #00ff88;
+            --warning: #ffb347;
+            --danger: #ff4d6d;
+        }
 
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #0f172a;
-    color: white;
-    display: flex;
-    justify-content: center;
-    padding: 50px 20px;
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-.container {
-    width: 600px;
-    max-width: 100%;
-}
+        body {
+            font-family: 'Syne', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-h1 {
-    text-align: center;
-    margin-bottom: 30px;
-}
+        /* Animated grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
 
-.drop-zone {
-    border: 2px dashed #38bdf8;
-    padding: 40px;
-    text-align: center;
-    cursor: pointer;
-    border-radius: 10px;
-    transition: 0.3s;
-}
+        /* Glowing orb */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -200px;
+            right: -200px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(123,97,255,0.12) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
 
-.drop-zone:hover {
-    background: rgba(56,189,248,0.1);
-}
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 60px 24px 80px;
+        }
 
-#fileInput {
-    display: none;
-}
+        /* Header */
+        .header {
+            margin-bottom: 56px;
+            animation: fadeDown 0.7s ease both;
+        }
 
-.file-name {
-    margin-top: 15px;
-    color: #38bdf8;
-    text-align: center;
-}
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,229,255,0.07);
+            border: 1px solid rgba(0,229,255,0.2);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--accent);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
 
-input, textarea, button {
-    width: 100%;
-    margin-top: 15px;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    font-size: 14px;
-}
+        .badge-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            animation: pulse 2s ease-in-out infinite;
+        }
 
-textarea {
-    resize: vertical;
-    min-height: 80px;
-}
+        h1 {
+            font-size: clamp(36px, 6vw, 58px);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-button {
-    background: #38bdf8;
-    color: black;
-    font-weight: bold;
-    cursor: pointer;
-}
+        .subtitle {
+            margin-top: 14px;
+            font-family: 'DM Mono', monospace;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
 
-button:hover {
-    opacity: 0.9;
-}
+        /* Upload Card */
+        .upload-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            animation: fadeUp 0.7s 0.2s ease both;
+            transition: border-color 0.3s;
+        }
 
-.results {
-    margin-top: 30px;
-    padding: 20px;
-    background: rgba(56,189,248,0.1);
-    border-radius: 10px;
-    border: 1px solid #38bdf8;
-}
+        .upload-card:hover { border-color: rgba(0,229,255,0.2); }
 
-.results h3 {
-    margin-top: 0;
-    color: #38bdf8;
-}
+        .drop-zone {
+            border: 1.5px dashed var(--border);
+            border-radius: 14px;
+            padding: 52px 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
 
-.results h2 {
-    color: #38bdf8;
-    margin-top: 20px;
-    margin-bottom: 10px;
-}
+        .drop-zone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(0,229,255,0.04), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
 
-.results ul {
-    padding-left: 20px;
-}
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(0,229,255,0.04);
+        }
 
-.results li {
-    margin: 8px 0;
-    line-height: 1.5;
-}
+        .drop-zone:hover::before, .drop-zone.dragover::before { opacity: 1; }
 
-.score-display {
-    font-size: 32px;
-    font-weight: bold;
-    color: #38bdf8;
-    text-align: center;
-    margin: 20px 0;
-}
+        .upload-icon {
+            width: 56px; height: 56px;
+            margin: 0 auto 20px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,229,255,0.08);
+            border-radius: 14px;
+            border: 1px solid rgba(0,229,255,0.15);
+            transition: transform 0.3s;
+        }
 
-.error {
-    background: rgba(239,68,68,0.1);
-    border: 1px solid #ef4444;
-    color: #fca5a5;
-    padding: 15px;
-    border-radius: 8px;
-    margin-top: 20px;
-}
+        .drop-zone:hover .upload-icon { transform: translateY(-3px); }
 
-.loading {
-    text-align: center;
-    color: #38bdf8;
-}
-</style>
+        .upload-icon svg { width: 26px; height: 26px; stroke: var(--accent); }
+
+        .drop-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .drop-sub {
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .drop-sub span {
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        #fileInput { display: none; }
+
+        .file-name {
+            margin-top: 16px;
+            font-family: 'DM Mono', monospace;
+            font-size: 13px;
+            color: var(--accent);
+            text-align: center;
+            min-height: 20px;
+        }
+
+        /* Job Role Input */
+        .field-group { margin-top: 28px; }
+
+        label {
+            display: block;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 18px;
+            font-family: 'DM Mono', monospace;
+            font-size: 14px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0,229,255,0.08);
+        }
+
+        input[type="text"]::placeholder, textarea::placeholder { color: var(--text-muted); }
+
+        textarea { resize: vertical; min-height: 110px; }
+
+        /* Analyze Button */
+        .btn-analyze {
+            margin-top: 28px;
+            width: 100%;
+            padding: 17px;
+            background: linear-gradient(135deg, var(--accent2), var(--accent));
+            border: none;
+            border-radius: 12px;
+            font-family: 'Syne', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-analyze::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn-analyze:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,229,255,0.25); }
+        .btn-analyze:hover::after { opacity: 1; }
+        .btn-analyze:active { transform: translateY(0); }
+        .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-text { position: relative; z-index: 1; }
+
+        /* Loader */
+        .loader {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 28px;
+            padding: 20px;
+            font-family: 'DM Mono', monospace;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .loader.active { display: flex; }
+
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Error */
+        .error-msg {
+            display: none;
+            margin-top: 16px;
+            padding: 14px 18px;
+            background: rgba(255,77,109,0.1);
+            border: 1px solid rgba(255,77,109,0.3);
+            border-radius: 10px;
+            font-family: 'DM Mono', monospace;
+            font-size: 13px;
+            color: var(--danger);
+        }
+        .error-msg.active { display: block; }
+
+        /* Results */
+        .results {
+            display: none;
+            margin-top: 32px;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .results.active { display: block; }
+
+        /* Score Card */
+        .score-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .score-ring-wrap {
+            position: relative;
+            flex-shrink: 0;
+            width: 110px; height: 110px;
+        }
+
+        .score-ring {
+            width: 110px; height: 110px;
+            transform: rotate(-90deg);
+        }
+
+        .score-ring circle {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+        }
+
+        .score-ring .track { stroke: var(--border); }
+
+        .score-ring .fill {
+            stroke: var(--accent);
+            stroke-dasharray: 295;
+            stroke-dashoffset: 295;
+            transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);
+            filter: drop-shadow(0 0 6px var(--accent));
+        }
+
+        .score-num {
+            position: absolute;
+            inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column;
+        }
+
+        .score-num strong {
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--text);
+        }
+
+        .score-num small {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .score-info h2 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .score-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Result Sections */
+        .result-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* Skills */
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skill-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(0,229,255,0.08);
+            border: 1px solid rgba(0,229,255,0.2);
+            color: var(--accent);
+            animation: tagIn 0.3s ease both;
+        }
+
+        .skill-tag.missing {
+            background: rgba(255,77,109,0.08);
+            border-color: rgba(255,77,109,0.2);
+            color: var(--danger);
+        }
+
+        /* Grammar */
+        .grammar-list { list-style: none; }
+
+        .grammar-item {
+            display: flex;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .grammar-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+        .grammar-icon {
+            flex-shrink: 0;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+        }
+
+        .grammar-icon.warn { background: rgba(255,179,71,0.15); }
+        .grammar-icon.info { background: rgba(0,229,255,0.1); }
+
+        .grammar-text { font-family: 'DM Mono', monospace; font-size: 13px; color: #94a3b8; line-height: 1.6; }
+        .grammar-text strong { color: var(--text); font-weight: 500; }
+
+        /* Recommendations */
+        .rec-list { list-style: none; }
+
+        .rec-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            font-size: 14px;
+            color: #94a3b8;
+            line-height: 1.6;
+            border-bottom: 1px solid var(--border);
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .rec-item:last-child { border-bottom: none; }
+
+        .rec-bullet {
+            flex-shrink: 0;
+            margin-top: 6px;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--accent2);
+            box-shadow: 0 0 6px var(--accent2);
+        }
+
+        /* Animations */
+        @keyframes fadeDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+        @keyframes tagIn { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+    </style>
 </head>
 <body>
 
 <div class="container">
+    <div class="header">
+        <div class="badge"><span class="badge-dot"></span> AI-Powered</div>
+        <h1>Resume<br>Analyzer</h1>
+        <p class="subtitle">// upload → analyze → get hired</p>
+    </div>
 
-<h1>AI Resume Analyzer</h1>
+    <div class="upload-card">
+        <div class="drop-zone" id="dropZone">
+            <div class="upload-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+            </div>
+            <p class="drop-label">Drop your resume here</p>
+            <p class="drop-sub">PDF or DOCX &nbsp;·&nbsp; <span id="browseLink">browse files</span></p>
+            <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt">
+        </div>
+        <div class="file-name" id="fileName"></div>
 
-<div class="drop-zone" id="dropZone">
-    <p><strong>Drag & Drop Resume Here</strong></p>
-    <p>or click to browse</p>
-    <input type="file" id="fileInput" name="resume" accept=".pdf,.docx,.doc,.txt">
-</div>
+        <div class="field-group">
+            <label>Target Job Role</label>
+            <input type="text" id="jobRole" placeholder="e.g. Senior Frontend Engineer">
+        </div>
 
-<div class="file-name" id="fileName"></div>
+        <div class="field-group">
+            <label>Job Description (optional)</label>
+            <textarea id="jobDesc" placeholder="Paste the job description here for tailored analysis..."></textarea>
+        </div>
 
-<input type="text" id="jobRole" placeholder="Enter Target Job Role (Optional)">
-<textarea id="jobDesc" placeholder="Paste Job Description (Optional)"></textarea>
+        <button class="btn-analyze" id="analyzeBtn" onclick="analyzeResume()">
+            <span class="btn-text">Analyze Resume →</span>
+        </button>
 
-<button onclick="analyzeResume()">Analyze Resume</button>
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <span>Analyzing your resume with AI...</span>
+        </div>
 
-<div class="results" id="results"></div>
+        <div class="error-msg" id="errorMsg"></div>
+    </div>
 
+    <div class="results" id="results">
+        <!-- Score Card -->
+        <div class="score-card">
+            <div class="score-ring-wrap">
+                <svg class="score-ring" viewBox="0 0 110 110">
+                    <circle class="track" cx="55" cy="55" r="47"/>
+                    <circle class="fill" id="scoreRing" cx="55" cy="55" r="47"/>
+                </svg>
+                <div class="score-num">
+                    <strong id="scoreNum">--</strong>
+                    <small>/100</small>
+                </div>
+            </div>
+            <div class="score-info">
+                <h2 id="scoreLabel">—</h2>
+                <p class="score-label" id="scoreSummary">Your resume analysis will appear here.</p>
+            </div>
+        </div>
+
+        <!-- Skills Found -->
+        <div class="result-section">
+            <div class="section-title">Skills Found</div>
+            <div class="skills-grid" id="skillsList"></div>
+        </div>
+
+        <!-- Missing Skills -->
+        <div class="result-section" id="missingSection" style="display:none">
+            <div class="section-title">Missing Keywords</div>
+            <div class="skills-grid" id="missingList"></div>
+        </div>
+
+        <!-- Grammar -->
+        <div class="result-section">
+            <div class="section-title">Writing Suggestions</div>
+            <ul class="grammar-list" id="grammarList"></ul>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="result-section">
+            <div class="section-title">Recommendations</div>
+            <ul class="rec-list" id="recList"></ul>
+        </div>
+    </div>
 </div>
 
 <script>
+    // === File Drop & Select ===
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileName = document.getElementById('fileName');
+    const browseLink = document.getElementById('browseLink');
+    let uploadedFile = null;
 
-const dropZone = document.getElementById("dropZone");
-const fileInput = document.getElementById("fileInput");
-const fileName = document.getElementById("fileName");
+    // Click anywhere on drop zone to browse
+    dropZone.addEventListener('click', (e) => {
+        fileInput.click();
+    });
 
-let uploadedFile = null;
+    // Prevent browse span from double-firing
+    browseLink.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.click();
+    });
 
-/* CLICK TO BROWSE */
-dropZone.addEventListener("click", () => {
-    fileInput.click();
-});
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) handleFile(file);
+    });
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
 
-/* DRAG OVER */
-dropZone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dropZone.style.background = "rgba(56,189,248,0.1)";
-});
-
-/* DRAG LEAVE */
-dropZone.addEventListener("dragleave", () => {
-    dropZone.style.background = "transparent";
-});
-
-/* DROP FILE */
-dropZone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    dropZone.style.background = "transparent";
-
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-});
-
-/* BROWSE SELECT */
-fileInput.addEventListener("change", () => {
-    if (fileInput.files[0]) handleFile(fileInput.files[0]);
-});
-
-function handleFile(file) {
-    uploadedFile = file;
-    fileName.textContent = "Selected: " + file.name;
-}
-
-/* SEND TO BACKEND */
-async function analyzeResume() {
-
-    if (!uploadedFile) {
-        alert("Please upload a resume first.");
-        return;
+    function handleFile(file) {
+        uploadedFile = file;
+        fileName.textContent = `✓ ${file.name}`;
     }
 
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = '<div class="loading">⏳ Analyzing resume...</div>';
+    // === Analyze ===
+    async function analyzeResume() {
+        const jobRole = document.getElementById('jobRole').value.trim();
+        const jobDesc = document.getElementById('jobDesc').value.trim();
 
-    const formData = new FormData();
-    formData.append("resume", uploadedFile);
-    formData.append("job_role", document.getElementById("jobRole").value);
-    formData.append("job_description", document.getElementById("jobDesc").value);
+        if (!uploadedFile) { showError('Please upload a resume file first.'); return; }
 
-    try {
-        const response = await fetch("/analyze", {
-            method: "POST",
-            body: formData
+        setLoading(true);
+        hideError();
+
+        const formData = new FormData();
+        formData.append('resume', uploadedFile);
+        if (jobRole) formData.append('job_role', jobRole);
+        if (jobDesc) formData.append('job_description', jobDesc);
+
+        try {
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.message || `Server error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            renderResults(data);
+
+        } catch (err) {
+            showError(err.message || 'Something went wrong. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function renderResults(data) {
+        const results = document.getElementById('results');
+        results.classList.add('active');
+
+        // Score
+        const score = Math.min(100, Math.max(0, data.score || 0));
+        document.getElementById('scoreNum').textContent = score;
+
+        // Ring animation
+        const circumference = 295;
+        const offset = circumference - (score / 100) * circumference;
+        setTimeout(() => {
+            document.getElementById('scoreRing').style.strokeDashoffset = offset;
+            // Color by score
+            const ring = document.getElementById('scoreRing');
+            if (score >= 75) ring.style.stroke = 'var(--success)';
+            else if (score >= 50) ring.style.stroke = 'var(--warning)';
+            else ring.style.stroke = 'var(--danger)';
+        }, 100);
+
+        // Score label
+        let label = score >= 80 ? 'Excellent Resume' : score >= 60 ? 'Good Resume' : score >= 40 ? 'Needs Work' : 'Needs Major Revision';
+        document.getElementById('scoreLabel').textContent = data.label || label;
+        document.getElementById('scoreSummary').textContent = data.summary || '';
+
+        // Skills
+        const skillsList = document.getElementById('skillsList');
+        skillsList.innerHTML = '';
+        (data.skills || []).forEach((s, i) => {
+            const tag = document.createElement('span');
+            tag.className = 'skill-tag';
+            tag.style.animationDelay = `${i * 0.05}s`;
+            tag.textContent = s;
+            skillsList.appendChild(tag);
         });
 
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.message && data.message.toLowerCase().includes("error")) {
-            resultsDiv.innerHTML = `<div class="error"><strong>Error:</strong> ${data.message}</div>`;
-            return;
-        }
-
-        // Build results HTML
-        let resultsHTML = `
-            <h2>Analysis Results</h2>
-            <div class="score-display">${data.score || 0}/100</div>
-        `;
-
-        if (data.skills && data.skills.length > 0) {
-            resultsHTML += `
-                <h3>✓ Detected Skills (${data.skills.length})</h3>
-                <ul>
-                    ${data.skills.map(s => `<li><strong>${s}</strong></li>`).join("")}
-                </ul>
-            `;
+        // Missing Skills
+        const missing = data.missing_skills || [];
+        const missingSection = document.getElementById('missingSection');
+        if (missing.length) {
+            missingSection.style.display = 'block';
+            const missingList = document.getElementById('missingList');
+            missingList.innerHTML = '';
+            missing.forEach((s, i) => {
+                const tag = document.createElement('span');
+                tag.className = 'skill-tag missing';
+                tag.style.animationDelay = `${i * 0.05}s`;
+                tag.textContent = '− ' + s;
+                missingList.appendChild(tag);
+            });
         } else {
-            resultsHTML += `<h3>✓ Detected Skills</h3><p>No skills detected. Consider adding technical skills to your resume.</p>`;
+            missingSection.style.display = 'none';
         }
 
-        if (data.missing_skills && data.missing_skills.length > 0) {
-            resultsHTML += `
-                <h2>Missing Skills (${data.missing_skills.length})</h2>
-                <ul>
-                    ${data.missing_skills.slice(0, 10).map(s => `<li>${s}</li>`).join("")}
-                </ul>
+        // Grammar
+        const grammarList = document.getElementById('grammarList');
+        grammarList.innerHTML = '';
+        (data.grammar || data.suggestions || []).forEach((g, i) => {
+            const li = document.createElement('li');
+            li.className = 'grammar-item';
+            li.style.animationDelay = `${i * 0.08}s`;
+            const isWarn = g.type === 'warning';
+            li.innerHTML = `
+                <div class="grammar-icon ${isWarn ? 'warn' : 'info'}">${isWarn ? '⚠' : '✦'}</div>
+                <div class="grammar-text">${g.message || g}</div>
             `;
-        }
+            grammarList.appendChild(li);
+        });
 
-        if (data.grammar && data.grammar.length > 0) {
-            resultsHTML += `
-                <h2>Grammar & Writing Issues (${data.grammar.length})</h2>
-                <ul>
-                    ${data.grammar.map(g => `<li>${typeof g === 'string' ? g : g.message || JSON.stringify(g)}</li>`).join("")}
-                </ul>
-            `;
-        } else {
-            resultsHTML += `<h2>Grammar & Writing</h2><p>✓ No major issues found!</p>`;
-        }
+        // Recommendations
+        const recList = document.getElementById('recList');
+        recList.innerHTML = '';
+        (data.recommendations || []).forEach((r, i) => {
+            const li = document.createElement('li');
+            li.className = 'rec-item';
+            li.style.animationDelay = `${i * 0.08}s`;
+            li.innerHTML = `<div class="rec-bullet"></div><div>${r}</div>`;
+            recList.appendChild(li);
+        });
 
-        if (data.recommendations && data.recommendations.length > 0) {
-            resultsHTML += `
-                <h2>Recommendations</h2>
-                <ul>
-                    ${data.recommendations.map(r => `<li>${r}</li>`).join("")}
-                </ul>
-            `;
-        }
-
-        resultsDiv.innerHTML = resultsHTML;
-
-    } catch (error) {
-        resultsDiv.innerHTML = `<div class="error"><strong>Error:</strong> Could not connect to server. Make sure the Flask app is running on port 5000.<br/><small>${error.message}</small></div>`;
-        console.error("Error:", error);
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-}
 
+    function setLoading(active) {
+        document.getElementById('loader').classList.toggle('active', active);
+        document.getElementById('analyzeBtn').disabled = active;
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('errorMsg');
+        el.textContent = '⚠ ' + msg;
+        el.classList.add('active');
+    }
+
+    function hideError() {
+        document.getElementById('errorMsg').classList.remove('active');
+    }
 </script>
-
 </body>
 </html>

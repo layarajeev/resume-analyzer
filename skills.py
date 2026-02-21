@@ -63,3 +63,4 @@ def extract_skills(text, job_role=None):
                 break  # Found matching role
 
     return detected, missing
+
