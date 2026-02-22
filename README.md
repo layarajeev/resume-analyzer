@@ -1,117 +1,62 @@
-# AI Resume Analyzer
+<p align="center">
+  <img src="./img.png" alt="Project Banner" width="100%">
+</p>
 
-A Flask-based web application that analyzes resumes using AI-powered grammar checking, skill detection, and scoring.
+# AI Resume Analyzer 🎯
+
+## Basic Details
+
+### Team Name:
+[Your Team Name]
+
+### Team Members
+- Melia Johnson – Muthoot Institute of Technology and Science  
+- Laya Rajeeve – Muthoot Institute of Technology and Science  
+
+### Hosted Project Link
+[Add deployed link / GitHub repo / demo link here]
+
+### Project Description
+AI Resume Analyzer is a web application that evaluates resumes using AI-based analysis.  
+It extracts content from resumes, scores them based on skills, keywords, and structure, and provides actionable feedback to improve job readiness.
+
+### The Problem Statement
+Many students and job seekers struggle to create strong resumes that pass ATS (Applicant Tracking Systems) or impress recruiters. They often lack proper feedback on resume quality.
+
+### The Solution
+Our system analyzes resumes automatically using NLP techniques and predefined scoring logic. It provides feedback on missing skills, formatting, keyword optimization, and overall resume strength.
+
+---
+
+## Technical Details
+
+### Technologies/Components Used
+
+**For Software:**
+- Languages used: Python, HTML, CSS, JavaScript  
+- Frameworks used: Flask  
+- Libraries used: PyPDF2 / pdfplumber, pandas, basic NLP processing  
+- Tools used: VS Code, GitHub  
+
+**For Hardware:**
+- Not applicable (software-only project)
+
+---
 
 ## Features
 
-✅ **Resume Upload** - Support for PDF and TXT files
-✅ **Skill Detection** - Identifies technical and professional skills
-✅ **Grammar Check** - Detects grammar and writing issues
-✅ **Resume Scoring** - AI-powered scoring out of 100
-✅ **Job Role Matching** - Analyzes resume against target job role
-✅ **Recommendations** - Provides actionable improvement suggestions
+- Resume upload and parsing (PDF/Text)
+- AI-based resume scoring
+- Skill and keyword analysis
+- Personalized feedback and suggestions
+- Simple and user-friendly interface
 
-## Installation
+---
 
-### 1. Install Python Dependencies
+## Implementation
+
+### Installation
 ```bash
+git clone <your-repo-link>
+cd resume-analyzer
 pip install -r requirements.txt
-```
-
-### 2. Download Spacy Language Model (Optional but Recommended)
-```bash
-python -m spacy download en_core_web_sm
-```
-
-## Running the Application
-
-### Start the Flask Server
-```bash
-python app.py
-```
-
-The app will be available at: **http://localhost:5000**
-
-## Usage
-
-1. **Upload Resume** - Drag & drop or click to upload PDF or TXT file
-2. **Enter Job Role** (Optional) - Specify target job position (e.g., "Software Engineer", "Data Analyst")
-3. **Paste Job Description** (Optional) - Add job description for better skill matching
-4. **Click "Analyze Resume"** - Get results including:
-   - Resume Score (0-100)
-   - Detected Skills
-   - Missing Skills for the role
-   - Grammar Issues
-   - Recommendations for improvement
-
-## Project Structure
-
-```
-resume/
-├── app.py              # Flask backend application
-├── grammar.py          # Grammar checking module
-├── skills.py           # Skill extraction module
-├── scoring.py          # Resume scoring module
-├── index.html          # Frontend interface
-├── script.js           # Frontend JavaScript (deprecated)
-└── requirements.txt    # Python dependencies
-```
-
-## Technologies Used
-
-- **Backend**: Flask (Python Web Framework)
-- **File Processing**: PyPDF2 (PDF extraction)
-- **Grammar Check**: LanguageTool
-- **NLP**: Spacy
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript
-
-## Troubleshooting
-
-### Port 5000 Already in Use
-- Change the port in `app.py`: `app.run(debug=True, host="0.0.0.0", port=8080)`
-
-### Missing Dependencies
-```bash
-pip install --upgrade -r requirements.txt
-```
-
-### Grammar Tool Not Working
-The grammar checker is optional. The app will work without it but won't provide grammar suggestions.
-
-### Resume Not Uploading
-- Ensure file is PDF or TXT format
-- Check file size (should be <10MB)
-- Enable console in browser (F12) to see error messages
-
-## API Endpoints
-
-### `GET /`
-Returns the HTML interface
-
-### `POST /analyze`
-Analyzes uploaded resume
-
-**Request:**
-```
-Content-Type: multipart/form-data
-
-resume: [file]
-job_role: [string] (optional)
-job_description: [string] (optional)
-```
-
-**Response:**
-```json
-{
-  "score": 75,
-  "skills": ["python", "javascript", "react"],
-  "missing_skills": ["docker", "kubernetes"],
-  "grammar": [{"message": "..."}],
-  "recommendations": ["..."],
-  "summary": "AI-powered resume analysis completed."
-}
-```
-
-## License
-
-This project is open source and available for educational use.
