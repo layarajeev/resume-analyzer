@@ -57,6 +57,6 @@ Our system analyzes resumes automatically using NLP techniques and predefined sc
 
 ### Installation
 ```bash
-git clone <your-repo-link>
+git clone <https://github.com/layarajeev/resume-analyzer.git>
 cd resume-analyzer
 pip install -r requirements.txt
