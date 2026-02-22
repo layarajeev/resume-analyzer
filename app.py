@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 from PyPDF2 import PdfReader
-
+import os
 # AI modules
 from skills import extract_skills
 from grammar import grammar_check
