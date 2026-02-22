@@ -1,4 +1,4 @@
-dimport requests
+import requests
 
 def grammar_check(text):
     if not text or len(text.strip()) < 10:
