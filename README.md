@@ -7,14 +7,14 @@
 ## Basic Details
 
 ### Team Name:
-[Your Team Name]
+Me-La
 
 ### Team Members
 - Melia Johnson – Muthoot Institute of Technology and Science  
-- Laya Rajeeve – Muthoot Institute of Technology and Science  
+- Laya Rajeev – Muthoot Institute of Technology and Science  
 
 ### Hosted Project Link
-[Add deployed link / GitHub repo / demo link here]
+https://resume-analyzer-8-yod2.onrender.com
 
 ### Project Description
 AI Resume Analyzer is a web application that evaluates resumes using AI-based analysis.  
