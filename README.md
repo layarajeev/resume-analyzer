@@ -14,7 +14,7 @@ Me-La
 - Laya Rajeev – Muthoot Institute of Technology and Science  
 
 ### Hosted Project Link
-https://resume-analyzer-8-yod2.onrender.com
+https://resume-analyzer-9-i1ii.onrender.com
 
 ### Project Description
 AI Resume Analyzer is a web application that evaluates resumes using AI-based analysis.  
